@@ -1,28 +1,4 @@
 `timescale 1ns / 1ps
-//============================================================
-// edge_top.v
-//
-// Chip-level edge analytics IP core:
-//
-//   edge_top
-//   |
-//   +-- sensor_interface   : parallel vib/temp/curr acquisition + timestamp
-//   +-- industry_profile   : per-vertical thresholds + window, from industry_sel
-//   +-- moving_avg_filter  : one instance per channel (vib / curr / temp)
-//   +-- threshold_detector : one instance per channel, band check vs profile
-//   +-- trend_detector     : rising/stable/falling on the vibration average
-//   +-- confidence_engine  : weighted score -> confirmed_fault
-//   +-- analytics_output   : packages everything for a dashboard / IoT link
-//
-// Design intent: three sensor channels are filtered and threshold-checked
-// in parallel (same architecture as a single channel, just instantiated
-// three times), then FUSED through a scoring engine instead of a rigid
-// AND, so a single noisy channel does not falsely shut a machine down
-// while two-or-more-channel or trending faults still get confirmed
-// quickly. industry_profile lets the same RTL be redeployed across
-// verticals (textile / cold storage / job-shop / general) purely by
-// changing industry_sel - no re-synthesis needed.
-//============================================================
 module edge_top #(
     parameter DATA_WIDTH = 12,
     parameter TS_WIDTH   = 32,
@@ -53,7 +29,7 @@ module edge_top #(
     output wire [1:0]             sensor_agreement_count,
     output wire                   confirmed_fault,
 
-    // Packaged analytics output (dashboard / IoT platform facing)
+    // Packaged analytics output
     output wire [TS_WIDTH-1:0]    analytics_timestamp,
     output wire [3:0]             analytics_confidence,
     output wire [6:0]             analytics_health,
@@ -64,7 +40,7 @@ module edge_top #(
     output wire                   analytics_valid,
     output wire [ANALYTICS_BUS_WIDTH-1:0] analytics_bus,
 
-    // Profile values broken out so they're visible on the waveform
+    // Profile values broken out 
     output wire [DATA_WIDTH-1:0]  profile_vib_thresh_high,
     output wire [DATA_WIDTH-1:0]  profile_curr_thresh_high,
     output wire [DATA_WIDTH-1:0]  profile_temp_thresh_high,
@@ -73,7 +49,7 @@ module edge_top #(
 );
 
     //-------------------------------------------------------
-    // Sensor acquisition - all three channels, same instant
+    // Sensor acquisition 
     //-------------------------------------------------------
     wire [DATA_WIDTH-1:0] vib_s, temp_s, curr_s;
     wire [TS_WIDTH-1:0]   timestamp;
@@ -97,7 +73,7 @@ module edge_top #(
     );
 
     //-------------------------------------------------------
-    // Industry profile - shared thresholds/window for every channel
+    // Industry profile 
     //-------------------------------------------------------
     wire [DATA_WIDTH-1:0] vib_th_high,  vib_th_low;
     wire [DATA_WIDTH-1:0] curr_th_high, curr_th_low;
@@ -135,8 +111,7 @@ module edge_top #(
     assign profile_window_sel       = window_sel;
 
     //-------------------------------------------------------
-    // Per-channel moving average - one instance per sensor,
-    // all sharing the profile-selected window
+    // Per-channel moving average
     //-------------------------------------------------------
     wire [DATA_WIDTH-1:0] filt_vib, filt_curr, filt_temp;
     wire                  filt_vib_valid, filt_curr_valid, filt_temp_valid;
@@ -208,9 +183,7 @@ module edge_top #(
     );
 
     //-------------------------------------------------------
-    // Trend detector - predictive signal, tracked on the
-    // vibration channel (typically the earliest indicator of
-    // developing mechanical stress)
+    // Trend detector - 
     //-------------------------------------------------------
     trend_detector #(.DATA_WIDTH(DATA_WIDTH)) TR (
         .clk        (clk),
@@ -222,12 +195,7 @@ module edge_top #(
         .falling    (trend_falling)
     );
 
-    // Current and temperature get their own trend detectors too, so a
-    // developing fault on either channel can also earn the scoring
-    // engine's "rising trend" point - not just vibration. These don't
-    // drive the top-level trend_rising/stable/falling display outputs
-    // (those stay tied to vibration, the earliest mechanical indicator),
-    // they only widen what feeds the confidence score below.
+    // Current and temperature get their own trend detectors 
     wire rising_curr, rising_temp;
 
     trend_detector #(.DATA_WIDTH(DATA_WIDTH)) TR_CURR (
@@ -253,11 +221,7 @@ module edge_top #(
     wire trend_rising_any = trend_rising | rising_curr | rising_temp;
 
     //-------------------------------------------------------
-    // Confidence-based fusion - replaces a rigid AND with a
-    // weighted score across all three channels plus trend.
-    // Weights and confirm_thresh now come from industry_profile
-    // instead of a fixed parameter, so e.g. Cold Storage can
-    // weight temperature as heavily as vibration.
+    // Confidence-based fusion 
     //-------------------------------------------------------
     confidence_engine CE (
         .clk                    (clk),
@@ -277,8 +241,7 @@ module edge_top #(
     );
 
     //-------------------------------------------------------
-    // Analytics output package - one clean interface for a
-    // dashboard, controller or IoT gateway
+    // Analytics output package 
     //-------------------------------------------------------
     analytics_output #(
         .TS_WIDTH  (TS_WIDTH),
