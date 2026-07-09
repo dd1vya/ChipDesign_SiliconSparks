@@ -1,40 +1,4 @@
 `timescale 1ns / 1ps
-//============================================================
-// edge_top_tb.v
-//
-// Walks the waveform/log through the story the judges care about:
-//
-//   Phase 1  NORMAL              - all channels quiet   (Textile profile)
-//   Phase 2  FALSE ALARM AVOIDED - vib spikes ALONE.
-//                                  fault_vib fires, score only reaches 2,
-//                                  confirmed_fault stays LOW. A single
-//                                  noisy channel does not shut the
-//                                  machine down.
-//   Phase 3  RECOVERY
-//   Phase 4  CONFIRMED FAULT     - vib AND curr spike TOGETHER.
-//                                  score = 2+2 = 4 -> confirmed_fault
-//                                  fires even before temp or trend
-//                                  contribute anything.
-//   Phase 5  RECOVERY            - confirmed_fault drops back to 0
-//   Phase 6  PROFILE SWITCH      -> Cold Storage, live.
-//                                  watch profile_*_thresh / window
-//                                  change on the waveform.
-//     6a   temperature dips below the Cold Storage floor ALONE
-//          (icing risk) -> only +1, score too low to confirm.
-//     6b   current also rises with it -> +1 (temp) + 2 (curr) = 3,
-//          STILL not confirmed - shows the engine needs real
-//          multi-signal weight, not just "any two conditions".
-//     6c   the same combination, but now the vibration average is
-//          also trending upward -> +1 (temp) + 2 (curr) + 1 (rising
-//          trend) = 4 -> confirmed. This is the trend detector
-//          earning its keep: it supplies the last point of
-//          confidence before a hard vib threshold is even crossed.
-//
-// NOTE: window_sel picks how many past samples get averaged
-// (2 for Textile, 8 for Cold Storage). Every phase below holds its
-// value for at least that many cycles so the moving average fully
-// settles before the log line that matters is read.
-//============================================================
 module edge_top_tb;
 
     reg         clk;
@@ -118,10 +82,8 @@ module edge_top_tb;
         sample_en = 1;
         #10; // let the profile register load
 
-        // Textile profile: window_sel=1 -> window=2. Minimum clean-read
-        // time is window(2) + pipeline(5) = ~7 cycles; held for 10 to
-        // give a comfortable margin so the log settles before the next
-        // transition instead of blipping through intermediate scores.
+        // Textile profile: window_sel=1 -> window=2. Minimum clean-read time is window(2) + pipeline(5) = ~7 cycles;
+
         $display("---- Phase 1: NORMAL (Textile profile) ----");
         for (i = 0; i < 10; i = i + 1) begin
             vib = 12'd20; curr = 12'd25; temp = 12'd30; #10;
@@ -149,10 +111,7 @@ module edge_top_tb;
 
         $display("---- Phase 6: PROFILE SWITCH -> Cold Storage (live) ----");
         industry_sel = 3'b001;
-        // window widens to 8: minimum clean-read time is window(8) +
-        // pipeline(5) = ~13 cycles. Hold each sub-phase for 16 so the
-        // moving average fully flushes the previous phase's samples
-        // before the log line that matters is read.
+        // window widens to 8: minimum clean-read time is window(8) + pipeline(5) = ~13 cycles.
 
         $display("---- Phase 6a: temperature alone dips below the cold-storage floor ----");
         for (i = 0; i < 16; i = i + 1) begin
