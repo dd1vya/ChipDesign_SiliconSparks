@@ -1,24 +1,4 @@
 `timescale 1ns / 1ps
-//============================================================
-// Module      : threshold_detector
-// Description : Compares a filtered sensor reading against a
-//               pair of profile-selected bounds (threshold_low,
-//               threshold_high) and flags a fault whenever the
-//               reading is outside that band.
-//
-//               Using a band instead of a single ceiling lets
-//               one instance of this block cover both "too high"
-//               faults (over-current, excess vibration) and "too
-//               low" faults (e.g. a cold-storage compressor
-//               running too cold - icing risk), purely by how
-//               industry_profile sets threshold_low. Channels
-//               that only care about an upper bound simply get
-//               threshold_low tied to 0 by the profile, and the
-//               low check never fires.
-//
-//               One comparator pair, one register stage - no
-//               DSP, no memory.
-//============================================================
 module threshold_detector #(
     parameter DATA_WIDTH = 12
 )(
