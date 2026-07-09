@@ -1,21 +1,4 @@
 `timescale 1ns / 1ps
-//============================================================
-// Module      : seven_seg_driver
-// Description : Time-multiplexed driver for the Boolean board's
-//               seven-segment displays. The board actually has
-//               TWO independent 4-digit common-anode displays
-//               (D0 and D1 - confirmed from the real boolean.xdc
-//               master constraints file), not one combined
-//               8-digit bus, so this drives them as two 4-way
-//               scanners sharing one counter.
-//
-//               Both anodes and segments are ACTIVE LOW: driving
-//               an anode low selects that digit, and driving a
-//               segment cathode low lights that segment.
-//
-//               digit7..digit4 -> D1 display (leftmost bank)
-//               digit3..digit0 -> D0 display (rightmost bank)
-//============================================================
 module seven_seg_driver #(
     parameter CLK_FREQ = 100_000_000,
     parameter REFRESH_HZ_PER_DIGIT = 1000  // ~1kHz scan rate per digit -> flicker-free
@@ -67,7 +50,7 @@ module seven_seg_driver #(
         endcase
     end
 
-    // Hex-to-segment lookup, active-low segments: {dp,g,f,e,d,c,b,a}
+    // Hex-to-segment lookup
     reg [7:0] seg_pattern;
     always @(*) begin
         case (active_digit)
@@ -99,8 +82,6 @@ module seven_seg_driver #(
             d0_seg <= 8'hFF;
             d1_seg <= 8'hFF;
         end else begin
-            // Only one bank is "active" (its anode driven low) at a time;
-            // the other bank's anodes stay all-high (off).
             d0_an  <= is_d1_slot ? 4'hF : ~(4'b1 << digit_sel[1:0]);
             d1_an  <= is_d1_slot ? ~(4'b1 << digit_sel[1:0]) : 4'hF;
             d0_seg <= seg_pattern;
