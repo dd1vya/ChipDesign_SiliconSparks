@@ -1,11 +1,11 @@
-#1 TEXTILE(BTN1-1,BTN2-0)
-1a] all switches low
+#1 TEXTILE(BTN1-0,BTN2-0)
+1a] All switches low
 d1sp1[0000]
 d1sp2[1000]
 rgb0[green]
 rgb1[green] 
 LD7 BLINKS 
-LD5 GLOWS ALL TIME
+LD5 GLOWS during LOW
 
 1b] sw15-sw10(all follow same pattern)
 low to high- 
@@ -51,61 +51,73 @@ LD13 LD10 LD3 LD1 LD0 GLOWS
 
 #2 COLD STORAGE(BTN1-1,BTN2-0)
 2A]all switches low
-d1sp1[1110]
-d1sp2[0850]
+d1sp1[2110]
+d1sp2[0700]
 rgb0[green]
 rgb1[blue] 
 LD7 BLINKS 
-LD2,LD5,LD8,LD12,LD14 GLOWS ALL TIME
+LD2,LD5,LD8,LD9,LD14 GLOWS ALL TIME
 
 2B]sw15-sw10(all follow same pattern)
 low to high- 
-d1sp1[1100->2100->421F->3210]
-d1sp2[0850->0700->0400->0550]
+d1sp1[3210->421F]
+d1sp2[0550->0400]
 rgb0[green->blue]
 rgb1[BLUE->red] 
-LD13 LD13 LD8 LD9 LD2 LD0 GLOWS LD4 LD3 GLOW AT MID SECOND
-IT ACTUALLY GOES LIKE LD8->LD9->LD10 AND BACK TO LD8 LD9 AT LAST
+LD14,13,9,8,2,0 gLOWS AT HIGH
+LD10,4,3 AT MID SECOND ONLY
+
 
 2C]high to low- 
-d1sp1[3210->1110]
-d1sp2[0550->0850]
-rgb0[BLUE->green]
+d1sp1[3210->2110]
+d1sp2[0550->0700]
+rgb0[GREEN->RED->green]
 rgb1[blue->BLUE] 
-LD13,LD0 GLOW TILL MID
+NO MID
 
 2D]sw9-sw4(all follow same pattern)
 low to high
-d1sp1[1110->3210]
-d1sp2[0850->0550]
+d1sp1[3110->521F->421F]
+d1sp2[0550->0200->0400]
 rgb0[green->green]
-rgb1[green->blue] 
-LD1,LD2,LD8,LD9,LD13,LD14 GLOWS during HIGH
-SW4 AND SW5 NO EFFECT
+rgb1[BLUE->RED] 
+LD8 GLOW AT MID
+
 
 2E]high to low
-d1sp1[3210->1110]
-d1sp2[0550->0850]
+d1sp1[2110]
+d1sp2[0700]
 rgb0[green->green]
-rgb1[blue->blue] 
+rgb1[RED->blue] 
 NO GLOW AT MID
 
-2F]A SWITCH FROM (SW15-S10) AND (SW9-SW6) TOGETHER
+2F]A SWITCH FROM (SW15-S10) AND (SW9-SW4) TOGETHER
 BOTH HIGH
-d1sp1[531F]
-d1sp2[0200]
+d1sp1[421F->631F->531F]
+d1sp2[0200->0000->0200]
 rgb0[green->BLUE->green]
-rgb1[BLUE->RED] 
-LD12 LD13 LD14 LD10 LD8 LD3 LD1 LD0 GLOWS
+rgb1[RED->RED] 
+LD12,13,14,3,2,1,0
+LD8->LD9->LD8(GLOWS IN THAT ORDER)
 
 2G]sw3-sw0
 SW3 ONLY
 low to high
-d1sp1[1110->0010]
-d1sp2[0850->1000]
+d1sp1[3110->1010->0010]
+d1sp2[0550->0850->1000]
 rgb0[green->green]
 rgb1[green->GREEN] 
 LD5,LD14 GLOWS during HIGH
+LD8 GLOWS MID
+
+2H]TEMP + CURR
+BOTH HIGH
+d1sp1[3110->2110]
+d1sp2[0850->0550]
+rgb0[green->GREEN]
+rgb1[GREEN->BLUE] 
+LD8 GLOWS MID SEC
+LD14,12,9,1 GLOWS DURING HIGH
 
 #3 JOB SHOP(BTN1-0,BTN2-1)
 3A]all switches low
