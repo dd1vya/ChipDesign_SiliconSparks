@@ -1,60 +1,10 @@
 `timescale 1ns / 1ps
-//============================================================
-// Module      : boolean_top
-// Description : Board-level wrapper that puts the edge analytics
-//               IP core on the RealDigital Boolean board, using
-//               switches as stand-in "sensors" (no external
-//               vib/curr/temp hardware is attached) and the
-//               LEDs + seven-segment displays + RGB LEDs as the
-//               dashboard.
-//
-//               Port names below match boolean.xdc exactly:
-//               clk, sw[15:0], led[15:0], btn[3:0],
-//               D0_AN[3:0]/D0_SEG[7:0], D1_AN[3:0]/D1_SEG[7:0],
-//               RGB0[2:0], RGB1[2:0]. Add boolean.xdc to your
-//               project as-is - no renaming needed.
-//
-// I/O plan:
-//   btn[0]       : reset (active-high pushbutton -> internal rst_n)
-//   btn[2:1]     : live industry_sel (00 Textile, 01 ColdStorage,
-//                  10 JobShop, 11 General)
-//   btn[3]       : unused here, free for later use
-//
-//   sw[15:10]    : vibration "sensor" value  (6 switches, left-
-//                  shifted into a 12-bit range so a handful of
-//                  switch positions can still cross every
-//                  profile's vib threshold)
-//   sw[9:4]      : current "sensor" value    (6 switches, same
-//                  scaling idea)
-//   sw[3:0]      : temperature "sensor" value (4 switches, finer
-//                  step size since Cold Storage's temp band is
-//                  narrow - 20 to 80)
-//
-//   led[2:0]     : fault_vib, fault_curr, fault_temp
-//   led[3]       : confirmed_fault
-//   led[6:4]     : trend_rising, trend_stable, trend_falling
-//   led[7]       : sample_en heartbeat (blinks so you can see the
-//                  core is actually sampling)
-//   led[11:8]    : confidence_score
-//   led[13:12]   : sensor_agreement_count
-//   led[15:14]   : industry_sel[1:0]
-//
-//   D1 display (leftmost bank, digits 7-4): health_score, decimal,
-//     3 digits (0-100), digit4 unused (shows 0)
-//   D0 display (rightmost bank, digits 3-0): confidence_score,
-//     sensor_agreement_count, industry_sel, confirmed_fault('F'/0)
-//
-//   RGB0 : trend color  - blue=rising, green=stable, red=falling
-//   RGB1 : fault status - red=confirmed_fault, blue=partial
-//          agreement (>=1 sensor faulting but not confirmed),
-//          green=all clear
-//============================================================
+
 module boolean_top #(
     parameter DATA_WIDTH = 12,
     parameter TS_WIDTH    = 32,
     parameter CLK_FREQ_HZ = 100_000_000,
-    parameter SAMPLE_HZ   = 4     // how often a new "sample" is taken - keep
-                                  // this slow enough for a human to watch
+    parameter SAMPLE_HZ   = 4     
 )(
     input  wire        clk,
     input  wire [3:0]  btn,
@@ -97,9 +47,7 @@ module boolean_top #(
     end
 
     //-------------------------------------------------------
-    // Switches -> stand-in sensor values. Left-shifting spreads
-    // a handful of switch positions across the full threshold
-    // range so you don't need all 12 bits of resolution by hand.
+    // Switches
     //-------------------------------------------------------
     wire [DATA_WIDTH-1:0] vib_in  = {sw[15:10], 6'b0};  // step = 64, range 0-4032
     wire [DATA_WIDTH-1:0] curr_in = {sw[9:4],   6'b0};  // step = 64, range 0-4032
@@ -108,7 +56,7 @@ module boolean_top #(
     wire [2:0] industry_sel = {1'b0, btn[2:1]};
 
     //-------------------------------------------------------
-    // The analytics core itself
+    // Analytics core 
     //-------------------------------------------------------
     wire fault_vib, fault_curr, fault_temp;
     wire trend_rising, trend_stable, trend_falling;
@@ -186,7 +134,7 @@ module boolean_top #(
     assign led[15:14] = industry_sel[1:0];
 
     //-------------------------------------------------------
-    // RGB status LEDs - quick "glance" indicators for the demo
+    // RGB status LEDs
     //-------------------------------------------------------
     assign RGB0[0] = trend_falling;   // red   = falling
     assign RGB0[1] = trend_stable;    // green = stable
@@ -198,10 +146,7 @@ module boolean_top #(
     assign RGB1[2] = partial_agreement;                      // blue  = one sensor flagging, not yet confirmed
 
     //-------------------------------------------------------
-    // Seven-segment: health_score (3 digits) + status digits.
-    // health_score is 0-100, converted to decimal with simple
-    // compare/subtract logic (small enough range that this is
-    // just glue-logic comparators, not a real divider IP).
+    // Seven-segment: health_score (3 digits) + status digits
     //-------------------------------------------------------
     wire [6:0] health = analytics_health;
     wire       health_hundreds_flag = (health >= 7'd100);
