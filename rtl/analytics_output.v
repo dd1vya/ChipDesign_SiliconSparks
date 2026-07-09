@@ -1,29 +1,4 @@
 `timescale 1ns / 1ps
-//============================================================
-// Module      : analytics_output
-// Description : Packages the per-cycle analytics picture into
-//               one clean, registered interface for downstream
-//               dashboards / controllers / IoT gateways, instead
-//               of exposing only a binary fault flag:
-//                 - timestamp
-//                 - confidence score
-//                 - health score
-//                 - sensor agreement count
-//                 - trend status
-//                 - confirmed fault
-//                 - selected industry profile
-//
-//               health_score is a simple derived value (no
-//               multiplier): a 7-entry lookup table maps the
-//               0..6 confidence_score onto a 0..100 health band,
-//               so "how healthy is the machine right now" reads
-//               as one number a dashboard can plot directly.
-//
-//               All fields are also concatenated onto
-//               analytics_bus for platforms that would rather
-//               consume one wide digital word than several
-//               separate ports.
-//============================================================
 module analytics_output #(
     parameter TS_WIDTH   = 32,
     parameter BUS_WIDTH  = TS_WIDTH + 4 + 7 + 2 + 2 + 1 + 3  // ts+conf+health+agree+trend+fault+profile
@@ -57,7 +32,6 @@ module analytics_output #(
                       TREND_RISING  = 2'b01,
                       TREND_FALLING = 2'b10;
 
-    // Confidence (0..6) -> health (100..0), coarse LUT, no multiply
     reg [6:0] health_lut;
     always @(*) begin
         case (confidence_score)
