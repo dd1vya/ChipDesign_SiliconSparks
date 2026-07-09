@@ -1,17 +1,4 @@
 `timescale 1ns / 1ps
-//============================================================
-// Module      : moving_avg_filter
-// Description : Hardware-efficient configurable moving-average
-//               filter. Window size is restricted to powers of
-//               two (1,2,4,8,16) so divide-by-N reduces to a
-//               cheap right-shift instead of a divider. This is
-//               what makes the filter reusable across vibration,
-//               temperature and current sensors without redesign.
-//
-//               UNCHANGED from the original source - instantiated
-//               three times in edge_top.v (one per channel) instead
-//               of being time-shared through sensor_sel.
-//============================================================
 module moving_avg_filter #(
     parameter DATA_WIDTH = 12,
     parameter MAX_WINDOW = 16,
@@ -21,12 +8,11 @@ module moving_avg_filter #(
     input  wire                     rst_n,
     input  wire [DATA_WIDTH-1:0]    data_in,
     input  wire                     data_in_valid,
-    input  wire [2:0]               window_sel,   // 0..4 -> window = 2^window_sel
-                                                    // 0:1  1:2  2:4  3:8  4:16
+    input  wire [2:0]               window_sel,   //window = 2^window_sel
     output reg  [DATA_WIDTH-1:0]    data_out,
     output reg                      data_out_valid
 );
-    // Sample history (deepest window supported)
+    // Sample history 
     reg [DATA_WIDTH-1:0] hist [0:MAX_WINDOW-1];
     integer i;
     // Shift new sample into history on every valid input
