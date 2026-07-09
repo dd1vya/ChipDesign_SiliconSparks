@@ -1,29 +1,11 @@
 `timescale 1ns / 1ps
-//============================================================
-// Module      : sensor_interface
-// Description : Multi-sensor front-end. Conditions and
-//               timestamps vibration / temperature / current
-//               EVERY sample_en pulse, all three channels in
-//               PARALLEL (no channel-select mux).
-//
-//               Why the mux was removed: the original version
-//               time-shared one output through sensor_sel, which
-//               is fine for single-channel monitoring but wrong
-//               for multi-sensor fusion - the confidence engine
-//               needs vib/curr/temp readings that all describe
-//               the SAME instant, not three readings taken on
-//               three different cycles. Sampling all channels
-//               together removes that source of skew for free
-//               (three comparators-worth of extra hardware, no
-//               mux, no lost information).
-//============================================================
 module sensor_interface #(
     parameter DATA_WIDTH = 12,
     parameter TS_WIDTH   = 32
 )(
     input  wire                   clk,
     input  wire                   rst_n,
-    // Raw sensor inputs (already digitized by external ADC in this model)
+    // Raw sensor inputs (already digitized by external ADC)
     input  wire [DATA_WIDTH-1:0]  vib_data_in,
     input  wire [DATA_WIDTH-1:0]  temp_data_in,
     input  wire [DATA_WIDTH-1:0]  curr_data_in,
