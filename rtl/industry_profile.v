@@ -1,54 +1,4 @@
 `timescale 1ns / 1ps
-//============================================================
-// Module      : industry_profile
-// Description : Live-switchable MSME operating profile. A 3-bit
-//               industry_sel picks the full threshold/window
-//               operating point for vibration, current AND
-//               temperature simultaneously, so the same IP core
-//               is reused across verticals without touching RTL.
-//
-//               Every channel gets a (low, high) band rather
-//               than a single ceiling: channels that only care
-//               about an upper bound just get their low bound
-//               tied to 0, so threshold_detector's band check
-//               degenerates to a plain ceiling check for them
-//               "for free".
-//
-//               As of this revision, the profile ALSO drives the
-//               confidence_engine's scoring weights and confirm
-//               threshold - not just the thresholds/window. This
-//               is what lets the same scoring hardware change its
-//               opinion about which sensor to trust most per
-//               industry, instead of a single fixed 2/2/1/1
-//               weighting everywhere.
-//
-//               industry_sel:
-//                 000 - Textile loom     (fast-spinning, tight
-//                                         vibration tolerance,
-//                                         needs a quick-reacting
-//                                         filter; vibration+current
-//                                         are the trusted pair)
-//                 001 - Cold storage     (compressor baseline is
-//                                         naturally noisier/more
-//                                         vibration-prone, so
-//                                         vibration alone is
-//                                         down-weighted; current
-//                                         draw and temperature are
-//                                         the more telling signals
-//                                         here, so both are weighted
-//                                         as heavily as vibration
-//                                         normally would be. A
-//                                         temperature FLOOR is also
-//                                         set since running too cold
-//                                         means icing risk)
-//                 010 - Job-shop / CNC   (heavier machinery, higher
-//                                         normal vibration and
-//                                         current draw; vibration+
-//                                         current stay the trusted
-//                                         pair, same as Textile)
-//                 011 - General / default
-//                 1xx - reserved, falls back to General
-//============================================================
 module industry_profile #(
     parameter DATA_WIDTH = 12
 )(
@@ -97,7 +47,7 @@ module industry_profile #(
                     temp_thresh_high <= 12'd200;
                     temp_thresh_low  <= 12'd0;
                     window_sel       <= 3'd1;    // window = 2 (fast reaction)
-                    // vibration+current are the trusted pair here
+
                     vib_weight       <= 3'd2;
                     curr_weight      <= 3'd2;
                     temp_weight      <= 3'd1;
@@ -111,9 +61,8 @@ module industry_profile #(
                     curr_thresh_low  <= 12'd0;
                     temp_thresh_high <= 12'd80;
                     temp_thresh_low  <= 12'd20;   // floor - too cold means icing risk
-                    window_sel       <= 3'd3;    // window = 8 (heavier smoothing)
-                    // vibration baseline is noisy here -> down-weighted;
-                    // current + temperature become the trusted pair
+                    window_sel       <= 3'd3;    // window = 8 
+                    
                     vib_weight       <= 3'd1;
                     curr_weight      <= 3'd2;
                     temp_weight      <= 3'd2;
@@ -134,7 +83,7 @@ module industry_profile #(
                     trend_weight     <= 3'd1;
                     confirm_thresh   <= 4'd4;
                 end
-                default: begin // General / default (011 and reserved 1xx codes)
+                default: begin 
                     vib_thresh_high  <= 12'd100;
                     vib_thresh_low   <= 12'd0;
                     curr_thresh_high <= 12'd100;
